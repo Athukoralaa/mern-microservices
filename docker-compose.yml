@@ -1,0 +1,130 @@
+services:
+  users:
+    build:
+      context: ./backend/users
+      dockerfile: Dockerfile
+    container_name: users-service
+    volumes:
+      - ./backend/users:/app
+      - /app/node_modules
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/common-db
+      - RABBITMQ_URL=amqp://rabbitmq
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - mongo
+      - rabbitmq
+    command: npm run dev
+
+  orders:
+    build: ./backend/orders
+    container_name: orders-service
+    volumes:
+      - ./backend/orders:/app
+      - /app/node_modules
+    ports:
+      - "5002:5002"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/common-db
+      - RABBITMQ_URL=amqp://rabbitmq
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - mongo
+      - rabbitmq
+    command: npm run dev
+
+  products:
+    build: ./backend/products
+    container_name: products-service
+    volumes:
+      - ./backend/products:/app
+      - /app/node_modules
+    ports:
+      - "5003:5003"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/common-db
+      - RABBITMQ_URL=amqp://rabbitmq
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - mongo
+      - rabbitmq
+    command: npm run dev
+
+  payments:
+    build: ./backend/payments
+    container_name: payments-service
+    volumes:
+      - ./backend/payments:/app
+      - /app/node_modules
+    ports:
+      - "5004:5004"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/common-db
+      - RABBITMQ_URL=amqp://rabbitmq
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - mongo
+      - rabbitmq
+    command: npm run dev
+
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    command: npm start
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=admin
+      - ME_CONFIG_MONGODB_URL=mongodb://admin:admin@mongo:27017/
+
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+volumes:
+  mongo-data:
+  rabbitmq-data:
